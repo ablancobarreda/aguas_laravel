@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('token');
-            $table->timestamp('login_time');
-            $table->timestamp('last_activity');
+            $table->timestamp('login_time')->useCurrent();
+            $table->timestamp('last_activity')->useCurrent();
             $table->string('ip_address')->nullable();
             $table->text('user_agent')->nullable();
             $table->timestamps();
-            
+
             $table->index('user_id');
         });
     }

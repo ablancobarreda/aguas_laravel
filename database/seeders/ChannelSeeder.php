@@ -42,7 +42,7 @@ class ChannelSeeder extends Seeder
                 'name' => '16',
                 'col_rel' => 'nwtype',
                 'variable' => 'Conexion',
-                'unidad_medida' => null,
+                'unidad_medida' => '',
                 'es_acuifero' => false,
             ],
             [
@@ -50,7 +50,7 @@ class ChannelSeeder extends Seeder
                 'name' => '31',
                 'col_rel' => 'powr',
                 'variable' => 'Energia',
-                'unidad_medida' => null,
+                'unidad_medida' => '',
                 'es_acuifero' => false,
             ],
             [

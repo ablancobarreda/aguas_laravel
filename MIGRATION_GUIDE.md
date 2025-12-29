@@ -217,7 +217,7 @@ El webhook espera el siguiente formato:
    composer require firebase/php-jwt
    ```
 
-2. **Gestión de Sesiones**: El sistema mantiene sesiones activas en la tabla `active_sessions`. Solo se permite una sesión activa por usuario.
+2. **Gestión de Sesiones**: El sistema mantiene sesiones activas en la tabla `active_sessions`. Los usuarios pueden tener múltiples sesiones activas simultáneamente.
 
 3. **Limpieza de Sesiones**: Se recomienda crear un comando programado para limpiar sesiones expiradas:
    ```bash

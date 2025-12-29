@@ -82,11 +82,6 @@ class AuthService
                 return ['error' => 'Contraseña incorrecta'];
             }
 
-            // Verificar si el usuario ya tiene una sesión activa
-            if (ActiveSession::where('user_id', $user->id)->exists()) {
-                return ['error' => 'Este usuario ya tiene una sesión activa en el sistema'];
-            }
-
             // Obtener rol
             $role = $user->role;
             if (!$role) {

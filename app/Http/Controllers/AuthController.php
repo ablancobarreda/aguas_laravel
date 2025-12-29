@@ -51,8 +51,7 @@ class AuthController extends Controller
         $result = $this->authService->login($validated, $ipAddress, $userAgent);
 
         if (isset($result['error'])) {
-            $statusCode = $result['error'] === 'Este usuario ya tiene una sesión activa en el sistema' ? 403 : 401;
-            return response()->json($result, $statusCode);
+            return response()->json($result, 401);
         }
 
         return response()->json($result, 200);

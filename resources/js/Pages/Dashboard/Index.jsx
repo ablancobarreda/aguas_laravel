@@ -175,8 +175,8 @@ export default function Dashboard() {
                   {isSearchOpen && searchTerm && (
                     <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-64 overflow-y-auto">
                       {filteredStations.length === 0 ? (
-                        <div className="p-4 text-center text-sm font-medium text-gray-700">
-                          SIN RESULTADOS
+                        <div className="p-4 text-center text-sm text-gray-500">
+                          No se encontraron estaciones
                         </div>
                       ) : (
                         <div className="divide-y divide-gray-200">

@@ -95,7 +95,7 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
-    isAdmin: user?.role_id === 1,
+    isAdmin: user?.role_id == '1',
     isLoading,
     updateUserFromProps,
   };

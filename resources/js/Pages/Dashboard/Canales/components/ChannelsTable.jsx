@@ -52,8 +52,86 @@ export default function ChannelsTable({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="hidden md:block overflow-x-auto">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      {/* Versión móvil - Cards */}
+      <div className="block lg:hidden divide-y divide-gray-200 min-h-[200px]">
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-[#05249E] rounded-full"></div>
+            <p className="mt-2 text-gray-600">Cargando canales...</p>
+          </div>
+        ) : channels.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="flex flex-col items-center">
+              <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m140-220-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No hay canales</h3>
+              <p className="mt-1 text-sm text-gray-500">Comienza creando un nuevo canal.</p>
+            </div>
+          </div>
+        ) : (
+          channels.map((channel) => (
+            <div key={channel.id} className="p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="mb-2">
+                    <span className="text-sm font-medium text-gray-900">{channel.name}</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-xs text-gray-500">Variable:</span>
+                    <span className="text-xs text-gray-900 ml-1">{channel.variable || '-'}</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-xs text-gray-500">Col. Rel:</span>
+                    <span className="text-xs text-gray-900 ml-1">{channel.col_rel}</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-xs text-gray-500">Unidad:</span>
+                    <span className="text-xs text-gray-900 ml-1">{channel.unidad_medida || '-'}</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      channel.es_acuifero 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {channel.es_acuifero ? 'Acuífero' : 'Superficial'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">Creado:</span>
+                    <span className="text-xs text-gray-900">{formatDate(channel.created_at)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <button
+                    onClick={() => onEdit(channel)}
+                    className="text-[#05249E] hover:text-blue-700 transition-colors p-2"
+                    title="Editar"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => onDelete(channel)}
+                    className="text-red-600 hover:text-red-700 transition-colors p-2"
+                    title="Eliminar"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Versión desktop - Tabla */}
+      <div className="hidden lg:block overflow-x-auto overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

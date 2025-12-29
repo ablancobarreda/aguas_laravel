@@ -15,7 +15,7 @@ export default function Header({ setSidebarOpen, currentModule }) {
   const handleConfirmLogout = async () => {
     setLogoutLoading(true);
     const token = localStorage.getItem('auth_token');
-    
+
     try {
       if (token) {
         // Llamar a la API de logout

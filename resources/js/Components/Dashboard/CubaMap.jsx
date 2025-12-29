@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -21,8 +21,6 @@ export default function CubaMap({ stations = [], onStationClick, onViewDetails, 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -210,7 +208,7 @@ export default function CubaMap({ stations = [], onStationClick, onViewDetails, 
 
         // Crear popup con información completa de la estación
         const popupContent = `
-          <div style="width: 380px; max-width: calc(100vw - 40px); font-family: system-ui, -apple-system, sans-serif; word-wrap: break-word; overflow-wrap: break-word;">
+          <div style="width: 300px; max-width: calc(100vw - 40px); font-family: system-ui, -apple-system, sans-serif; word-wrap: break-word; overflow-wrap: break-word;" >
             <!-- Header -->
             <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #E5E7EB;">
               <h3 style="margin: 0 0 4px 0; font-size: 18px; font-weight: bold; color: #1F2937;">
@@ -391,143 +389,8 @@ export default function CubaMap({ stations = [], onStationClick, onViewDetails, 
     };
   }, [stations, onStationClick, selectedStationId]);
 
-  // Filtrar estaciones para el buscador
-  const filteredStationsForSearch = useMemo(() => {
-    if (!searchTerm.trim()) return stations;
-    const term = searchTerm.toLowerCase();
-    return stations.filter(station => {
-      const location = station.location?.toLowerCase() || '';
-      const id = station.id?.toLowerCase() || '';
-      const locality = station.locality?.name?.toLowerCase() || '';
-      const municipality = station.locality?.municipality?.name?.toLowerCase() || '';
-      const province = station.locality?.municipality?.province?.name?.toLowerCase() || '';
-
-      return location.includes(term) ||
-             id.includes(term) ||
-             locality.includes(term) ||
-             municipality.includes(term) ||
-             province.includes(term);
-    });
-  }, [stations, searchTerm]);
-
-  const handleStationSelect = (station) => {
-    setSearchTerm('');
-    setIsSearchOpen(false);
-    if (onStationClick) {
-      onStationClick(station);
-    }
-  };
-
-
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden">
-      {/* Selector de estaciones */}
-      <div className="absolute top-4 right-4 z-[1000] w-80">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-          <div className="p-3 border-b border-gray-200">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar estación..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setIsSearchOpen(true);
-                }}
-                onFocus={() => setIsSearchOpen(true)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#05249E] focus:border-transparent text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Lista de resultados */}
-          {isSearchOpen && searchTerm && (
-            <div className="max-h-64 overflow-y-auto">
-              {filteredStationsForSearch.length === 0 ? (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  No se encontraron estaciones
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-200">
-                  {filteredStationsForSearch.slice(0, 10).map((station) => {
-                    // Verificar coordenadas de la misma manera que en el mapa
-                    let lat = station.latitude;
-                    let lng = station.longitude;
-
-                    if (typeof lat === 'string') {
-                      lat = parseFloat(lat);
-                    }
-                    if (typeof lng === 'string') {
-                      lng = parseFloat(lng);
-                    }
-
-                    // Verificar si las coordenadas pueden estar invertidas
-                    const cubaLatRange = [19, 24];
-                    const cubaLngRange = [-85, -74];
-
-                    let finalLat = lat;
-                    let finalLng = lng;
-
-                    // Si lat está en el rango de longitud de Cuba, probablemente están invertidas
-                    if (lat >= cubaLngRange[0] && lat <= cubaLngRange[1] &&
-                        lng >= cubaLatRange[0] && lng <= cubaLatRange[1]) {
-                      finalLat = lng;
-                      finalLng = lat;
-                    }
-
-                    // Validar coordenadas para Cuba (lat: 19-24, lng: -85 a -74)
-                    const isValidLat = !isNaN(finalLat) && finalLat >= 19 && finalLat <= 24;
-                    const isValidLng = !isNaN(finalLng) && finalLng >= -85 && finalLng <= -74;
-                    const hasValidCoords = isValidLat && isValidLng;
-
-                    return (
-                      <button
-                        key={station.id}
-                        onClick={() => handleStationSelect(station)}
-                        disabled={!hasValidCoords}
-                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                          !hasValidCoords ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {station.location || station.id}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {station.locality?.name || ''}
-                              {station.locality?.municipality?.name && `, ${station.locality.municipality.name}`}
-                              {station.locality?.municipality?.province?.name && `, ${station.locality.municipality.province.name}`}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-0.5">ID: {station.id}</p>
-                          </div>
-                          {!hasValidCoords && (
-                            <span className="text-xs text-gray-400 ml-2">Sin coordenadas</span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Cerrar búsqueda al hacer click fuera */}
-      {isSearchOpen && (
-        <div
-          className="fixed inset-0 z-[999]"
-          onClick={() => setIsSearchOpen(false)}
-        />
-      )}
-
       <div ref={mapRef} style={{ height: '100%', width: '100%', zIndex: 0 }} />
       <style>{`
         .leaflet-container {
@@ -562,6 +425,14 @@ export default function CubaMap({ stations = [], onStationClick, onViewDetails, 
           background: transparent !important;
           border: none !important;
         }
+        .leaflet-tooltip {
+          z-index: 35 !important;
+        }
+        @media (min-width: 1024px) {
+          .leaflet-tooltip {
+            z-index: 250 !important;
+          }
+        }
         .custom-tooltip {
           background: rgba(255, 255, 255, 0.95) !important;
           border: 1px solid #E5E7EB !important;
@@ -569,6 +440,7 @@ export default function CubaMap({ stations = [], onStationClick, onViewDetails, 
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
           padding: 8px 12px !important;
           font-size: 13px !important;
+          z-index: inherit !important;
         }
         .leaflet-tooltip-top:before {
           border-top-color: #E5E7EB !important;

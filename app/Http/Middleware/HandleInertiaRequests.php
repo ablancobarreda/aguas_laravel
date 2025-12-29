@@ -36,19 +36,39 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = null;
+        $token = null;
         
-        // Intentar obtener el usuario del token JWT si está presente
+        // Intentar obtener el token de varias fuentes
+        // 1. Header Authorization (para peticiones API)
         $authHeader = $request->header('Authorization');
         if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
             $token = substr($authHeader, 7);
+        }
+        
+        // 2. Cookie (para peticiones de Inertia)
+        if (!$token) {
+            $token = $request->cookie('auth_token');
+        }
+        
+        // 3. Query parameter (fallback)
+        if (!$token) {
+            $token = $request->query('token');
+        }
+        
+        // Si tenemos un token, intentar obtener el usuario
+        if ($token) {
             try {
                 $authService = app(\App\Services\AuthService::class);
                 $decoded = $authService->verifyToken($token);
                 if (!isset($decoded['error'])) {
-                    $user = \App\Models\User::with('role')->find($decoded['id']);
+                    // Verificar si la sesión está activa
+                    if ($authService->isSessionActive($token)) {
+                        $user = \App\Models\User::with('role')->find($decoded['id']);
+                    }
                 }
             } catch (\Exception $e) {
                 // Ignorar errores de token
+                \Log::debug('Error obteniendo usuario en HandleInertiaRequests: ' . $e->getMessage());
             }
         }
         

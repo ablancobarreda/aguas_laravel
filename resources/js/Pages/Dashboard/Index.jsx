@@ -11,21 +11,9 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredStations, setFilteredStations] = useState([]);
   const [selectedStationId, setSelectedStationId] = useState(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    const date = now.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-    const time = now.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-    return `${time} ${date}`;
-  };
+
 
   const loadStations = useCallback(async () => {
     setLoading(true);
@@ -147,42 +135,130 @@ export default function Dashboard() {
       <Head title="Dashboard - Aguas" />
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Monitoreo de Estaciones
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Resumen de datos en tiempo real de todas las estaciones
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-[#05249E] mt-4 lg:mt-0">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-medium">
-                {getCurrentDateTime()}
-              </span>
-            </div>
-          </div>
-        </div>
-
 
         {/* Map */}
-        {!loading && !error && filteredStations.length > 0 && (
+        {!loading && !error && stations.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
-                Mapa de Estaciones
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Visualiza la ubicación de todas las estaciones en Cuba
-              </p>
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between lg:gap-4">
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Mapa de Estaciones
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Visualiza la ubicación de todas las estaciones en Cuba
+                  </p>
+                </div>
+
+                {/* Search Bar - Desktop: right side, Mobile: below title */}
+                <div className="mt-4 lg:mt-0 lg:w-80 relative">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Buscar estación..."
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setIsSearchOpen(true);
+                      }}
+                      onFocus={() => setIsSearchOpen(true)}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#05249E] focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* Lista de resultados */}
+                  {isSearchOpen && searchTerm && (
+                    <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-64 overflow-y-auto">
+                      {filteredStations.length === 0 ? (
+                        <div className="p-4 text-center text-sm font-medium text-gray-700">
+                          SIN RESULTADOS
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-200">
+                          {filteredStations.slice(0, 10).map((station) => {
+                            // Verificar coordenadas
+                            let lat = station.latitude;
+                            let lng = station.longitude;
+
+                            if (typeof lat === 'string') {
+                              lat = parseFloat(lat);
+                            }
+                            if (typeof lng === 'string') {
+                              lng = parseFloat(lng);
+                            }
+
+                            const cubaLatRange = [19, 24];
+                            const cubaLngRange = [-85, -74];
+
+                            let finalLat = lat;
+                            let finalLng = lng;
+
+                            if (lat >= cubaLngRange[0] && lat <= cubaLngRange[1] &&
+                                lng >= cubaLatRange[0] && lng <= cubaLatRange[1]) {
+                              finalLat = lng;
+                              finalLng = lat;
+                            }
+
+                            const isValidLat = !isNaN(finalLat) && finalLat >= 19 && finalLat <= 24;
+                            const isValidLng = !isNaN(finalLng) && finalLng >= -85 && finalLng <= -74;
+                            const hasValidCoords = isValidLat && isValidLng;
+
+                            return (
+                              <button
+                                key={station.id}
+                                onClick={() => {
+                                  setSelectedStationId(station.id);
+                                  setIsSearchOpen(false);
+                                  setSearchTerm('');
+                                }}
+                                disabled={!hasValidCoords}
+                                className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                                  !hasValidCoords ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                      {station.location || station.id}
+                                    </p>
+                                    <p className="text-xs text-gray-500 truncate">
+                                      {station.locality?.name || ''}
+                                      {station.locality?.municipality?.name && `, ${station.locality.municipality.name}`}
+                                      {station.locality?.municipality?.province?.name && `, ${station.locality.municipality.province.name}`}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-0.5">ID: {station.id}</p>
+                                  </div>
+                                  {!hasValidCoords && (
+                                    <span className="text-xs text-gray-400 ml-2">Sin coordenadas</span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* Cerrar búsqueda al hacer click fuera */}
+            {isSearchOpen && (
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsSearchOpen(false)}
+              />
+            )}
+
             <div style={{ height: '600px', width: '100%' }}>
               <CubaMap
-                stations={filteredStations}
+                stations={filteredStations.length > 0 ? filteredStations : stations}
                 selectedStationId={selectedStationId}
                 onStationClick={(station) => {
                   setSelectedStationId(station.id);

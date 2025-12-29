@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -6,9 +7,32 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { props } = usePage();
+
+  // Función para actualizar el usuario desde las props de Inertia
+  const updateUserFromProps = (propsUser) => {
+    if (propsUser) {
+      setUser({
+        id: propsUser.id,
+        username: propsUser.username,
+        role_id: propsUser.role_id,
+        role: propsUser.role ? {
+          id: propsUser.role.id,
+          name: propsUser.role.name || propsUser.role
+        } : null,
+      });
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Primero intentar obtener el usuario del localStorage (guardado después del login)
+    // PRIORIDAD 1: Intentar obtener el usuario de las props de Inertia (más confiable en servidor)
+    if (props?.auth?.user) {
+      updateUserFromProps(props.auth.user);
+      return;
+    }
+
+    // PRIORIDAD 2: Intentar obtener el usuario del localStorage (guardado después del login)
     const storedUser = localStorage.getItem('auth_user');
     if (storedUser) {
       try {
@@ -26,22 +50,14 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Si no hay usuario en localStorage, intentar obtenerlo del token
+    // PRIORIDAD 3: Si no hay usuario en localStorage, intentar obtenerlo del token
     const token = localStorage.getItem('auth_token');
     if (token) {
       fetchUserFromToken(token);
     } else {
       setIsLoading(false);
     }
-  }, []);
-
-  // Función para actualizar el usuario desde las props de Inertia
-  const updateUserFromProps = (propsUser) => {
-    if (propsUser) {
-      setUser(propsUser);
-      setIsLoading(false);
-    }
-  };
+  }, [props?.auth?.user]);
 
   const fetchUserFromToken = async (token) => {
     try {

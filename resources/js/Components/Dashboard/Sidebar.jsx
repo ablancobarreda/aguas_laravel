@@ -121,7 +121,7 @@ export default function Sidebar({ open, setOpen, setCurrentModule }) {
   };
 
   const renderNavSection = (items, title) => (
-    <div className="space-y-1">
+    <div className="space-y-1 z-[1000]">
       {title && (
         <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
           {title}
@@ -187,7 +187,7 @@ export default function Sidebar({ open, setOpen, setCurrentModule }) {
   return (
     <>
       <Transition.Root show={open} as={Fragment}>
-        <Dialog as="div" className="relative z-40 lg:hidden" onClose={setOpen}>
+        <Dialog as="div" className="relative z-50 lg:hidden" onClose={setOpen}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity ease-linear duration-300"

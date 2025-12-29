@@ -1,0 +1,70 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Illuminate\Http\Request;
+use Inertia\Middleware;
+
+class HandleInertiaRequests extends Middleware
+{
+    /**
+     * The root template that's loaded on the first page visit.
+     *
+     * @see https://inertiajs.com/server-side-setup#root-template
+     *
+     * @var string
+     */
+    protected $rootView = 'app';
+
+    /**
+     * Determines the current asset version.
+     *
+     * @see https://inertiajs.com/asset-versioning
+     */
+    public function version(Request $request): ?string
+    {
+        return parent::version($request);
+    }
+
+    /**
+     * Define the props that are shared by default.
+     *
+     * @see https://inertiajs.com/shared-data
+     *
+     * @return array<string, mixed>
+     */
+    public function share(Request $request): array
+    {
+        $user = null;
+        
+        // Intentar obtener el usuario del token JWT si está presente
+        $authHeader = $request->header('Authorization');
+        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+            $token = substr($authHeader, 7);
+            try {
+                $authService = app(\App\Services\AuthService::class);
+                $decoded = $authService->verifyToken($token);
+                if (!isset($decoded['error'])) {
+                    $user = \App\Models\User::with('role')->find($decoded['id']);
+                }
+            } catch (\Exception $e) {
+                // Ignorar errores de token
+            }
+        }
+        
+        return [
+            ...parent::share($request),
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'role_id' => $user->role_id,
+                    'role' => $user->role ? [
+                        'id' => $user->role->id,
+                        'name' => $user->role->name,
+                    ] : null,
+                ] : null,
+            ],
+        ];
+    }
+}

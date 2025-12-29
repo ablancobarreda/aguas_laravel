@@ -15,80 +15,62 @@ class EquipmentSeeder extends Seeder
     {
         $equipments = [
             [
-                'id' => 'EST001',
-                'location' => 'Estación de monitoreo 1',
-                'latitude' => 23.1367,
-                'longitude' => -82.3589,
-                'imei' => '123456789012345',
-                'phone' => '+53555123456',
+                'id' => 'UCL13300',
+                'location' => 'Desarrollo',
+                'latitude' => 20.37295900,
+                'longitude' => -76.63873277,
+                'imei' => '862636052186861',
+                'phone' => '53521603212',
                 'channel' => null,
-                'basin' => 'Cuenca Norte',
-                'locality_id' => 7, // Vedado - La Habana
+                'basin' => 'Cauto',
+                'locality_id' => 1886,
             ],
             [
-                'id' => 'EST002',
-                'location' => 'Estación de monitoreo 2',
-                'latitude' => 20.3769,
-                'longitude' => -76.6436,
-                'imei' => '123456789012346',
-                'phone' => '+53555123457',
+                'id' => 'UCL13301',
+                'location' => 'EAH Granma',
+                'latitude' => 20.367717686795707,
+                'longitude' => -76.64086927847255,
+                'imei' => '862636052186862',
+                'phone' => '52865583',
                 'channel' => null,
-                'basin' => 'Cuenca Sur',
-                'locality_id' => 11, // Centro - Bayamo
+                'basin' => 'Cauto',
+                'locality_id' => 1906,
             ],
             [
-                'id' => 'EST003',
-                'location' => 'Estación de monitoreo 3',
-                'latitude' => 19.9855,
-                'longitude' => -75.8483,
-                'imei' => '123456789012347',
-                'phone' => '+53555123458',
+                'id' => 'UCL13302',
+                'location' => 'Derivadora Bayamo',
+                'latitude' => 20.31126688,
+                'longitude' => -76.63948206,
+                'imei' => '862636052186863',
+                'phone' => '52865513',
                 'channel' => null,
-                'basin' => 'Cuenca Este',
-                'locality_id' => 15, // Vista Alegre - Santiago de Cuba
-            ],
-            [
-                'id' => 'EST004',
-                'location' => 'Estación de monitoreo 4',
-                'latitude' => 23.0500,
-                'longitude' => -82.3667,
-                'imei' => '123456789012348',
-                'phone' => '+53555123459',
-                'channel' => null,
-                'basin' => 'Cuenca Oeste',
-                'locality_id' => 9, // Miramar - Playa
-            ],
-            [
-                'id' => 'EST005',
-                'location' => 'Estación de monitoreo 5',
-                'latitude' => 20.3433,
-                'longitude' => -76.7572,
-                'imei' => '123456789012349',
-                'phone' => '+53555123460',
-                'channel' => null,
-                'basin' => 'Cuenca Central',
-                'locality_id' => 13, // Costa - Manzanillo
+                'basin' => 'Cauto',
+                'locality_id' => 1899,
             ],
         ];
 
         foreach ($equipments as $equipment) {
-            $locality = Locality::find($equipment['locality_id']);
-            if ($locality) {
-                Equipment::firstOrCreate(
-                    ['id' => $equipment['id']],
-                    [
-                        'location' => $equipment['location'],
-                        'latitude' => $equipment['latitude'],
-                        'longitude' => $equipment['longitude'],
-                        'imei' => $equipment['imei'],
-                        'phone' => $equipment['phone'],
-                        'channel' => $equipment['channel'],
-                        'basin' => $equipment['basin'],
-                        'locality_id' => $equipment['locality_id'],
-                    ]
-                );
+            if ($equipment['locality_id'] !== null) {
+                $locality = Locality::find($equipment['locality_id']);
+                if (!$locality) {
+                    $this->command->warn('Locality ID ' . $equipment['locality_id'] . ' not found. Skipping equipment ' . $equipment['id']);
+                    continue;
+                }
             }
+
+            Equipment::firstOrCreate(
+                ['id' => $equipment['id']],
+                [
+                    'location' => $equipment['location'],
+                    'latitude' => $equipment['latitude'],
+                    'longitude' => $equipment['longitude'],
+                    'imei' => $equipment['imei'],
+                    'phone' => $equipment['phone'],
+                    'channel' => $equipment['channel'],
+                    'basin' => $equipment['basin'],
+                    'locality_id' => $equipment['locality_id'],
+                ]
+            );
         }
     }
 }
-

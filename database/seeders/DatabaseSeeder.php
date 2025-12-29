@@ -15,11 +15,11 @@ class DatabaseSeeder extends Seeder
             // RoleSeeder::class,
             // UserSeeder::class,
             // ProvinceSeeder::class,
-            MunicipalitySeeder::class,
-            LocalitySeeder::class,
-            // ChannelSeeder::class,
-            // EquipmentSeeder::class,
-            // EquipmentChannelSeeder::class,
+            // MunicipalitySeeder::class,
+            // LocalitySeeder::class,
+            ChannelSeeder::class,
+            EquipmentSeeder::class,
+            EquipmentChannelSeeder::class,
         ]);
     }
 }
